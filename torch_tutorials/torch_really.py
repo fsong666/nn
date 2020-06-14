@@ -80,6 +80,13 @@ def fit(weights, bias):
             with torch.no_grad():
                 weights -= weights.grad * lr
                 bias -= bias.grad * lr
+                # mini_batch的多个样本的输出，经过损失函数得到标量的loss,loss.backward()求梯度,
+                # 分别对多个样本的输出求梯度，反向传播到叶变量的梯度，每个叶变量对应有多个样本的梯度值
+                # 叶变量的梯度会对， 多个样本的梯度值求和累积， 再取平均.
+                # 为了的叶变量多样本梯度， 中间变量的梯度值也是累积求和平均的结果，反向传播时，用原有的
+                # 多个样本梯度分别传向下层，下层继续求和取平均的梯度
+                # 每层的梯度是多样本梯度求和平均的结果，反向传播时用的原有的多样本梯度传播
+                # 所以为了避免上批次的样本值得到梯度累加到当前的梯度， 每次批量更新后需置零
                 weights.grad.zero_()
                 bias.grad.zero_()
 
@@ -129,8 +136,12 @@ def train_optim(model):
 def train_TensorDataset(model, train_ds):
     """
     TensorDataset():
-    类似打包zip(list1, list2)形成pair的tuple. 不同的是输入是tenor TensorDataset(x_tensor, y_tensor)
+    类似打包zip(list1, list2)形成pair的tuple.
+    与list(zip(list1, list2))的不同点
+    １．输入是tenor TensorDataset(x_tensor, y_tensor)
     train_ds = ( (x1, y1), (x2, y2), (x3, y3)... )
+    ２．pair对之间会合并， data[0:3] = (x1x2x3, y1y2y3)
+    合并后的data[n:m].len 永远是2, 不可加入for迭代
     """
     lr = 0.5  # learning rate
     epochs = 3  # how many epochs to train for
@@ -138,7 +149,7 @@ def train_TensorDataset(model, train_ds):
     for epoch in range(epochs):
         # mini_batch
         # 不能整除的最后一批 x[start_i:end_i] 实际输出行数小于bs,输出实际有的行数
-        for i in range((n - 1) // bs + 1):
+        for i in range((n - 1) // bs + 1): # (n - 1) // bs + 1 == math.ceil( n / bs) 向上取整
             start_i = i * bs
             end_i = start_i + bs
             # xb = x_train[start_i:end_i]
@@ -155,6 +166,8 @@ def train_TensorDataset(model, train_ds):
 def train_DataLoader(model, train_dl):
     """
     DataLoader(): 根据batch_size进行合并，　和随机排列
+    每次从中读取元素时， 会随机读取一个batch, 读取触发随机
+
     运行过程:
     1. pair随机排序　shuffle=True
         train_ds = ( (x1, y1), (x３, y３), (x２, y２)... ) ,
@@ -181,8 +194,6 @@ def train_DataLoader(model, train_dl):
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
-
-
 
 
 def train_Validation(model, train_dl, valid_dl):
@@ -266,7 +277,7 @@ class Minist_CNN(nn.Module):
         # print("xb_conv2.size=", xb2.size())
         # print("xb_conv3.size=", xb3.size())
         # print("xb_pool.size=", xb4.size())
-        return xb4.view(-1, xb4.size(1))  # bs x 10
+        return xb4.view(1, xb4.size(1))  # bs x 10
 
 
 def train_CNN(train_dl, valid_dl):
@@ -391,61 +402,63 @@ if __name__ == '__main__':
     print("yb= \n", yb)
 
     # 自定义 无bp
-    # print("loss=", loss_func(preds, yb).item())
-    # print("accuracy=", accuracy(preds, yb).item())
-    # print("---------------")
-    #
-    # fit(weights, bias)
-    # preds = model(xb)
-    # print("loss=", loss_func(preds, yb).item())
-    # print("accuracy=", accuracy(preds, yb).item())
-    #
-    # print("--------nn.F-------")
-    # loss_func = F.cross_entropy
-    # preds = modelF(xb)
-    # print("loss=", loss_func(preds, yb).item())
-    # print("accuracy=", accuracy(preds, yb).item())
+    print("loss=", loss_func(preds, yb).item())
+    print("accuracy=", accuracy(preds, yb).item())
+    print("---------------")
 
-    # print("-------nn.Module--------")
-    # model = Mnist_Logistic()
-    # train(model)
-    # preds = model(xb)
-    # print("loss=", loss_func(preds, yb).item())
-    # print("accuracy=", accuracy(preds, yb).item())
-    #
-    # print("-------nn.Linear--------")
-    # model = Minist_Model()
-    # train(model)
-    # preds = model(xb)
-    # print("loss=", loss_func(preds, yb).item())
-    # print("accuracy=", accuracy(preds, yb).item())
-    #
-    # print("-------torch.optim--------")
-    # model = Minist_Model()
-    # train(model)
-    # preds = model(xb)
-    # print("loss=", loss_func(preds, yb).item())
-    # print("accuracy=", accuracy(preds, yb).item())
-    #
-    # print("-------torch.TensorDataset-------")
-    # model = Minist_Model()
-    #
-    # train_ds = TensorDataset(x_train, y_train)
-    # train_TensorDataset(model, train_ds)
-    # preds = model(xb)
-    # print("loss=", loss_func(preds, yb).item())
-    # print("accuracy=", accuracy(preds, yb).item())
-    #
-    # print("-------torch.DataLoader-------")
-    # train_ds = TensorDataset(x_train, y_train)
-    #
-    # train_dl = DataLoader(train_ds, batch_size=bs)
-    # model = Minist_Model()
-    # train_DataLoader(model, train_dl)
-    # preds = model(xb)
-    # print("loss=", loss_func(preds, yb).item())
-    # print("accuracy=", accuracy(preds, yb).item())
-    #
+    fit(weights, bias)
+    preds = model(xb)
+    print("loss=", loss_func(preds, yb).item())
+    print("accuracy=", accuracy(preds, yb).item())
+
+    print("--------nn.F-------")
+    loss_func = F.cross_entropy
+    preds = modelF(xb)
+    print("loss=", loss_func(preds, yb).item())
+    print("accuracy=", accuracy(preds, yb).item())
+
+    print("-------nn.Module--------")
+    model = Mnist_Logistic()
+    train(model)
+    preds = model(xb)
+    print("loss=", loss_func(preds, yb).item())
+    print("accuracy=", accuracy(preds, yb).item())
+
+    print("-------nn.Linear--------")
+    model = Minist_Model()
+    train(model)
+    preds = model(xb)
+    print("loss=", loss_func(preds, yb).item())
+    print("accuracy=", accuracy(preds, yb).item())
+
+    print("-------torch.optim--------")
+    model = Minist_Model()
+    train(model)
+    preds = model(xb)
+    print("loss=", loss_func(preds, yb).item())
+    print("accuracy=", accuracy(preds, yb).item())
+
+    print("-------torch.TensorDataset-------")
+    model = Minist_Model()
+    train_ds = TensorDataset(x_train, y_train)
+    train_TensorDataset(model, train_ds)
+    print("train_ds.type=", type(train_ds))
+    print("train_ds.len=", len(train_ds))
+    print("train_ds=", train_ds)
+    preds = model(xb)
+    print("loss=", loss_func(preds, yb).item())
+    print("accuracy=", accuracy(preds, yb).item())
+
+    print("-------torch.DataLoader-------")
+    train_ds = TensorDataset(x_train, y_train)
+
+    train_dl = DataLoader(train_ds, batch_size=bs)
+    model = Minist_Model()
+    train_DataLoader(model, train_dl)
+    preds = model(xb)
+    print("loss=", loss_func(preds, yb).item())
+    print("accuracy=", accuracy(preds, yb).item())
+
     # print("-------torch.validation-------")
     # train_ds = TensorDataset(x_train, y_train)
     # train_dl = DataLoader(train_ds, batch_size=bs, shuffle=True)
@@ -472,8 +485,8 @@ if __name__ == '__main__':
     # train_dl, valid_dl = get_data_func(bs, x_train, y_train, x_valid, y_valid, preprocessWrapped)
     # train_Wrapped(train_dl, valid_dl)
 
-    print("---------CNN-GPU--------")
-    print(torch.cuda.is_available())
-    dev = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    train_dl, valid_dl = get_data_func(bs, x_train, y_train, x_valid, y_valid, preprocessGPU)
-    train_CNN_GPU(train_dl, valid_dl)
+    # print("---------CNN-GPU--------")
+    # print(torch.cuda.is_available())
+    # dev = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    # train_dl, valid_dl = get_data_func(bs, x_train, y_train, x_valid, y_valid, preprocessGPU)
+    # train_CNN_GPU(train_dl, valid_dl)

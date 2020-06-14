@@ -59,7 +59,7 @@ class MNIST:
         # print("y_np=\n", y_np)
         # training_x, training_y = self.training_data
         # np.random.shuffle(training_x)
-        # 单独对整个二维数组形式的数据随机后，再对标签随机排列,那么x无法２找到对应的标签y
+        # 单独对整个二维数组形式的数据随机后，再对标签随机排列,那么x无法找到对应的标签y
         # 所以数据集输入需每行数据与标签形成pair,然后形成list,再对pair随机排列输入
 
         training_x = [x for x in training_x]

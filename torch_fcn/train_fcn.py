@@ -10,6 +10,7 @@ class TrainModel:
                  learning_rate=1.0, mini_batch_size=4, epochs=1, num_class=1):
         self.num_class = num_class
         self.training_data = training_data
+        print("mini_batch.shape=\n", len(training_data))
         self.test_data = test_data
         self.validation_data = validation_data
         self.mini_batch_size = mini_batch_size

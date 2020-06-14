@@ -1,15 +1,14 @@
-import gzip
 import numpy as np
-import pickle
 import os
 import struct
+import torch
 import matplotlib.pyplot as plt
+from torch.utils.data import TensorDataset
 
 
 class MNIST:
     def __init__(self):
         self.path = '/home/sf/Downloads/minist'
-        self.path_pkl = '/home/sf/Downloads/minist/mnist.pkl.gz'
 
     def load_mnist(self, path, kind='train'):
         """
@@ -20,7 +19,6 @@ class MNIST:
         images_path = os.path.join(path, '%s-images-idx3-ubyte' % kind)
 
         with open(labels_path, 'rb') as lbpath:
-            # >:大端模式　I: unsigned int, 4bytes
             magic, n = struct.unpack('>II', lbpath.read(8))
             labels = np.fromfile(lbpath, dtype=np.uint8)
             print('{0} labels magic= {1}, n = {2}'.format(kind, magic, n))
@@ -32,15 +30,22 @@ class MNIST:
         # 输出是numpy数组
         return images, labels
 
-    def load_mnist_wrapper(self, factor=0.8, num_class=10):
+    def wrapper_mnist(self, factor=0.8):
         training_x, training_y = self.load_mnist(self.path, 'train')
         test_x, test_y = self.load_mnist(self.path, 't10k')
         # min-max normalization
         training_x = training_x.astype('float32') / 255
         test_x = test_x.astype('float32') / 255
+        print("x_train=\n", training_x)
+        print("y_train=\n", training_y)
+        print("x_train.shape=\n", training_x.shape)
+        print("y_train.shape=\n", training_y.shape)
+        print("training_y.min= ", training_y.min(), " training_y.max= ", training_y.max())
+        # showMNIST(training_x, training_y)
+
+        training_x, training_y, test_x, test_y = map(torch.tensor, (training_x, training_y, test_x, test_y))
         # print("training_x.type=\n", type(training_x))
         # print("training_x=\n", training_x)
-        # showMNIST(training_x, training_y)
 
         # validation
         split = int(factor * len(training_x))
@@ -53,56 +58,52 @@ class MNIST:
         print('validation labels, n = \t{:>10}'.format(len(validation_x)))
         print('test labels, n = \t{:>10}'.format(len(test_x)))
 
-        training_x = [np.reshape(x, (-1, 1)) for x in training_x]
-        training_y = [vectorized_result(y, num_class) for y in training_y]
+        return training_x, training_y, validation_x, validation_y, test_x, test_y
+
+    def load_data(self, factor=0.8, num_class=10):
+        training_x, training_y, validation_x, validation_y, test_x, test_y = self.wrapper_mnist(factor)
+        y_train = torch.zeros((training_y.size(0), num_class))
+        for i in range(len(training_y)):
+            y_train[i][training_y[i].item()] = 1.0
+        train_ds = TensorDataset(training_x, y_train)
+        # print("train_ds.type=", type(train_ds))
+        # print("train_ds.len=", len(train_ds))
+        # print("train_ds=", train_ds)
+        valid_ds = TensorDataset(validation_x, validation_y)
+        test_ds = TensorDataset(test_x, test_y)
+
+        return train_ds, valid_ds, test_ds
+
+    def load_mnist_wrapper(self, factor=0.8, num_class=10):
+        """
+        training_data = [ (x1, y1), (x2, y2), (x3, y3)... ]
+        """
+        training_x, training_y, validation_x, validation_y, test_x, test_y = self.wrapper_mnist(factor)
+
+        # y_np = vectorized_result(training_y[0], num_class)
+        # for i in range(1, training_y.shape[0]):
+        #     y = vectorized_result(training_y[i], num_class)
+        #     y_np = np.vstack((y_np, y))
+        # print("y_np=\n", y_np)
+        # training_x, training_y = self.training_data
+        # np.random.shuffle(training_x)
+        # 单独对整个二维数组形式的数据随机后，再对标签随机排列,那么x无法找到对应的标签y
+        # 所以数据集输入需每行数据与标签形成pair,然后形成list,再对pair随机排列输入
+
+        # merge x, y
+        training_x = [x for x in training_x]
+        training_y = [vectorized_result(y.item(), num_class) for y in training_y]
         training_data = list(zip(training_x, training_y))
 
-        validation_x = [np.reshape(x, (-1, 1)) for x in validation_x]
+        validation_x = [x for x in validation_x]
         validation_data = list(zip(validation_x, validation_y))
 
-        test_x = [np.reshape(x, (-1, 1)) for x in test_x]
+        test_x = [x for x in test_x]
         test_data = list(zip(test_x, test_y))
 
         return training_data, validation_data, test_data
 
-    def load_data(self):
-        """
-        from mnist.pkl.gz
-        """
-        f = gzip.open(self.path_pkl, 'rb')
-        with gzip.open(self.path_pkl, 'rb') as f:
-            ((x_train, y_train), (x_valid, y_valid), (x_test, y_test)) = pickle.load(f, encoding='bytes')
-            # training_data, validation_data, test_data = pickle.load(f, encoding='bytes')
 
-        # showMNIST(x_train, y_train)
-        print("x_train=\n", x_train)
-        print("y_train=\n", y_train)
-        print("x_train.shape=\n", x_train.shape)
-        print("y_train.shape=\n", y_train.shape)
-        print(y_train.min(), y_train.max())
-        # return training_data, validation_data, test_data
-        return x_train, y_train, x_valid, y_valid
-
-    def load_data_wrapper_pkl(self):
-        tr_d, va_d, te_d, _ = self.load_data()
-        # 训练集 每张图即每行数据是一个列表，然后list转numpy数组　
-        # list转numpy数组,行向量转列向量,把所有的列向量放到一个list即training_inputs
-        # training_inputs 是个列表[np列向量1，np.列向量2, ...]
-        training_inputs = [np.reshape(x, (784, 1)) for x in tr_d[0]]
-        training_labels = [vectorized_result(y) for y in tr_d[1]]
-        # training_data 是个列表[(列向量x，列向量label),(), ...]
-        training_data = list(zip(training_inputs, training_labels))
-        print('train_data = \n ', training_data[0])
-        print('y_label =\n', tr_d[1][:10])
-        # 验证集
-        validation_inputs = [np.reshape(x, (784, 1)) for x in va_d[0]]
-        validation_data = list(zip(validation_inputs, va_d[1]))
-        # print('vaidation y_label =\n', va_d[1][:10])
-
-        # 测试集
-        test_inputs = [np.reshape(x, (784, 1)) for x in te_d[0]]
-        test_data = list(zip(test_inputs, te_d[1]))
-        return training_data, validation_data, test_data
 
 
 def showMNIST(X_train, y_train):
@@ -125,6 +126,7 @@ def vectorized_result(j, num_class=10):
     (0...9) into a corresponding desired output from the neural
     network."""
     # num_class = 10
-    e = np.zeros((num_class, 1))
-    e[j] = 1.0
+    # 行向量 但是MSE的 x,y的size必须相同，　x.size = (1,10) ===y.size(), 所以为二维的
+    e = torch.zeros((1, num_class))
+    e[0][j] = 1
     return e

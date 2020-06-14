@@ -113,7 +113,7 @@ class MyLinearFunction(torch.autograd.Function):
     1.每个teｎsor构建成一节点，每个该tensor的计算构成一个边.
     3.当requires_grad=True,每个tensor节点生成一个双向边(包含edge.backward()), u->v && u<-v
     4.最重要的是每个前向边计算都会保存当前边的权重和输入!!!,ctx.save_for_backward(input, weight, bias)
-    5.通过美岑保存每个节点输入
+    5.通过ctx保存每个节点输入
     如何启动backward? u->v && u<-v
     1.某一个前向边的计算结果,即箭头节点(root node)v_tensor调用成员函数backward(),
     2.通过v_tensor的邻接链表,的反向边edge(u,v)里的ctx.saved_tensors保存好的输入，权重，来计算该边权重梯度和输入梯度，
@@ -124,7 +124,7 @@ class MyLinearFunction(torch.autograd.Function):
     反向网络传播是一个广度优先搜选BFS,root节点是目标函数节点,开启tensor.backward()的节点
 
     pytorch 为了节省显存，在反向传播的过程中只针对计算图中的叶子结点(leaf variable)保留了梯度值(gradient)
-    leaf variable: 原始输入的节点，比如数据集输入节点，超参数输入节点,因为在ＢＦＳ树的叶节点上，故叫叶边量
+    leaf variable: 原始输入的节点，比如数据集输入节点，超参数输入节点,因为在ＢＦＳ树的叶节点上，故叫叶变量
     中间变量:可有由叶变量计算出的变量
     """
 
@@ -162,7 +162,6 @@ class MyLinearFunction(torch.autograd.Function):
 def torch_autograd_sgd():
     dtype = torch.float
     device = torch.device("cpu")
-
     N, D_in, H, D_out = 64, 1000, 100, 10
 
     # Create random input and output data
@@ -174,7 +173,6 @@ def torch_autograd_sgd():
     # requires_grad=True), 图上的叶变量一旦建立就不能再被用户手动更改
     w1 = torch.randn(D_in, H, device=device, dtype=dtype, requires_grad=True)
     w2 = torch.randn(H, D_out, device=device, dtype=dtype, requires_grad=True)
-
 
     learning_rate = 1e-6
     for t in range(500):
@@ -228,7 +226,6 @@ def optim_sgd():
     x = torch.randn(N, D_in, device=device, dtype=dtype)
     y = torch.randn(N, D_out, device=device, dtype=dtype)
 
-
     # Use the nn package to define our model as a sequence of layers. nn.Sequential
     # is a Module which contains other Modules, and applies them in sequence to
     # produce its output. Each Linear Module computes output from input using a
@@ -257,6 +254,16 @@ def optim_sgd():
         # weights of the model). This is because by default, gradients are
         # accumulated in buffers( i.e, not overwritten) whenever .backward()
         # is called. Checkout docs of torch.autograd.backward for more details.
+        """
+        mini_batch的多个样本的输出，经过损失函数得到标量的loss,loss.backward()求梯度, 
+        分别对多个样本的输出求梯度，反向传播到叶变量的梯度，每个叶变量对应有多个样本的梯度值
+        叶变量的梯度会对， 多个样本的梯度值求和累积， 再取平均.
+        为了的叶变量多样本梯度， 中间变量的梯度值也是累积求和平均的结果，反向传播时，用原有的
+        多个样本梯度分别传向下层，下层继续求和取平均的梯度
+        
+        每层的梯度是多样本梯度求和平均的结果，反向传播时用的原有的多样本的梯度传播.
+        所以为了避免上批次的样本值得到梯度累加到当前的梯度， 每次批量更新后需置零
+        """
         optimeizer.zero_grad()
         # zero_gradmodel.zero_grad()
         # loss.backward()
