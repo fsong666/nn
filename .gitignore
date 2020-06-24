@@ -1,6 +1,10 @@
 #pycharm
 **/.idea
-
+**/.vscode
+**/cifar-10-batches-py
+*.tar.gz
+*.pth
+*.html
 
 # Byte-compiled / optimized / DLL files
 **/__pycache__
