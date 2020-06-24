@@ -194,7 +194,7 @@ def torch_autograd_sgd():
 
         # Update weights using gradient descent
         # In this mode, the result of every computation will have
-        # `requires_grad=False`, even when the inputs have `requires_grad=True`.
+        # `requires_grad=False`, even when the inputs have `requires_grad=True`
         # requires_grad=True`.　后的任何计算operate都会被跟踪。但跟新梯度的运算无需被跟踪，
         # 暂时关闭 requires_grad=True.
         with torch.no_grad():
@@ -328,8 +328,12 @@ def dynamic_sgd():
         loss.backward()
         optimeizer.step()
 
+
 if __name__ == '__main__':
     # np_sgd()
     # torch_autograd_sgd()
     # optim_sgd()
-    dynamic_sgd()
+    # dynamic_sgd()
+    x = torch.randint(0, 10, (3, 4))
+
+    b = torch.tensor([1, 2, 3])

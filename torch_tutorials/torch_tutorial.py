@@ -6,11 +6,11 @@ if __name__ == '__main__':
 
     print(a)
     print(torch.numel(a))
-    a = torch.zeros(3,4)
+    a = torch.zeros(3, 4)
     print(torch.numel(a))
-    a = torch.eye(3,3)
+    a = torch.eye(3, 3)
     print(a)
-    b = np.random.randint(5, size=(2,4))
+    b = np.random.randint(5, size=(2, 4))
     print("b = \n", b)
 
     # bp数组和torch.tensor 共享内存
@@ -25,12 +25,12 @@ if __name__ == '__main__':
     t = torch.logspace(1, 10, 7)
     print("t = \n", t)
 
-    t = torch.ones(3,4)
+    t = torch.ones(3, 4)
     print("t = \n", t)
 
-    t = torch.rand(3,4)
+    t = torch.rand(3, 4)
     print("rand = \n", t)
-    t = torch.randn(3,4)
+    t = torch.randn(3, 4)
     print("randn = \n", t)
     print("t = \n", t[1:-1, :])
     # 产生10个随机整数
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     t = torch.cat((t, t), 0)
     print("cat= \n", t)
     # stack会增加一个维度，　叠加
-    t2 = torch.stack((t2,t2),0)
+    t2 = torch.stack((t2, t2), 0)
     print("stack= \n", t2)
 
     # 返回一个tuple
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     t = torch.Tensor([[1, 2, 3], [4, 5, 6]])
     print("t.type() = \n", t.type())
 
-    n = np.array([1,2,3])
+    n = np.array([1, 2, 3])
     t = torch.as_tensor(n)
     print("n = \n", n)
     print("t = \n", t)

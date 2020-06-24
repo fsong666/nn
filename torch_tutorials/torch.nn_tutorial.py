@@ -24,10 +24,8 @@ if __name__ == '__main__':
     # print("y.size = ", y.size(), "y=\n", y)
     # print("---------------------------\n")
 
-
-
     # loss
-    x = torch.rand(1, 4, requires_grad=True)#.squeeze()
+    x = torch.rand(1, 4, requires_grad=True)    # squeeze()
     m = nn.Linear(4, 4)
     target = torch.tensor([[0.0, 1.0, 0.0, 0.0]])
     print("\ntarget.size= ", target.size(), "target=\n", target)

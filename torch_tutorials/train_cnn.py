@@ -23,7 +23,7 @@ class Train_CNN:
 
         # early-stopping
         self.patience = 5000
-        self.validation_frequency = 500 # [0, 499] = 500
+        self.validation_frequency = 500     # [0, 499] = 500
 
     def train(self):
         n = len(self.training_data)
@@ -48,8 +48,8 @@ class Train_CNN:
                 losses = torch.zeros(1, requires_grad=True)
                 self.model.train()
                 for x, y in mini_batch:
-                    tensor_x = torch.from_numpy(x).reshape(1,-1)
-                    tensor_y = torch.from_numpy(y).reshape(1,-1).type_as(tensor_x)
+                    tensor_x = torch.from_numpy(x).reshape(1, -1)
+                    tensor_y = torch.from_numpy(y).reshape(1, -1).type_as(tensor_x)
                     tensor_x.requires_grad_(True)
                     activation = self.model(tensor_x)
                     loss = self.loss_fn(activation, tensor_y)
@@ -78,7 +78,7 @@ class Train_CNN:
     def evaluate(self, test_data):
         # np.argmax()返回一个多维数组值最大的索引值,索引是一维索引，索引值是个标量
         # test_dat中标签y是一个标量
-        test_results = [(torch.argmax(self.model(torch.from_numpy(x).reshape(1,-1))).numpy(), y)
+        test_results = [(torch.argmax(self.model(torch.from_numpy(x).reshape(1, -1))).numpy(), y)
                         for (x, y) in test_data]
         # 对一个比对结果的list求和, list=[1, 0, 1,..]
         sum_value = sum(int(x == y) for (x, y) in test_results)
