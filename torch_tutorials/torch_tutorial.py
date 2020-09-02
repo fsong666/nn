@@ -48,6 +48,7 @@ if __name__ == '__main__':
     t = torch.cat((t, t), 0)
     print("cat= \n", t)
     # stack会增加一个维度，　叠加
+    # 分别取每个输入张量的沿着指定维度的元素，然后拼接
     t2 = torch.stack((t2, t2), 0)
     print("stack= \n", t2)
 

@@ -142,6 +142,7 @@ def train_TensorDataset(model, train_ds):
     train_ds = ( (x1, y1), (x2, y2), (x3, y3)... )
     ２．pair对之间会合并， data[0:3] = (x1x2x3, y1y2y3)
     合并后的data[n:m].len 永远是2, 不可加入for迭代
+    3. data[n:m] 是一个len为２的tuple, data[n:m][0]是输入数据，　data[n:m][1]是对应的标签
     """
     lr = 0.5  # learning rate
     epochs = 3  # how many epochs to train for
@@ -179,7 +180,7 @@ def train_DataLoader(model, train_dl):
           (x２x4, y２y4), ... )，x1x3是行堆积成的tensor,
     4. train_dl = ((x_batch1, y_batch1), (x_batch2, y_batch2), ...)
 
-    key: 每个元素即Mini_batch是二维数组，二维的tensor, 不是原来的pair的tuple
+    key idea: 每个元素即Mini_batch是二维数组，二维的tensor, 不是原来的pair的tuple
     mini_batch := 2D tensor
     mini_batch := list(pairs) or tuple(pairs) without torch
     """
