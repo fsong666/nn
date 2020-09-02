@@ -234,12 +234,15 @@ class Network:
             z = zs[-l]
             maske_bp = maske_caches[-l]
             # sp = self.sigmoid_prime(activations[-l])
+
             # δ(-l) = W(-l+1).T dot δ(-l+1) * f'(z(-l))
             # delta作为输入,　为了W矩阵的行数==delta的列数,Ｗ要转置
             delta_node = maske_bp * np.dot(self.weights[-l + 1].T, delta_node) * self.sigmoid_prime(z)
+
             # delta_node = np.dot(self.weights[-l + 1].T, delta_node) * self.sigmoid_prime(z)
             # print("delta[{0}] = \n {1} ".format(-l, delta))
             gradient_b[-l] = delta_node
+
             # delta_w(-l) =  δ(-l) dot a(-l-1).T
             gradient_w[-l] = np.dot(delta_node, activations[-l - 1].T)
         return gradient_b, gradient_w

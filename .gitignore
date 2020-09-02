@@ -1,9 +1,13 @@
 #pycharm
 **/.idea
 **/.vscode
+**/data
+**/dataset
 **/cifar-10-batches-py
 *.tar.gz
+*.zip
 *.pth
+*.pt
 *.html
 
 # Byte-compiled / optimized / DLL files
