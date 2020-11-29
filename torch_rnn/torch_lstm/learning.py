@@ -58,6 +58,7 @@ print('h0:\n', h0)
 print('hn:\n', hn, '\nshape= ', hn.shape)
 
 # c_n of shape (num_layers * num_directions, batch, hidden_size)  for t = seq_len
+# initial cell state, 内循环门(CEC)的输入hidden state初始化值
 print('cn:\n', cn, '\nshape= ', cn.shape)
 
 # output of shape (seq_len, batch, num_directions * hidden_size)

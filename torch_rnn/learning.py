@@ -11,7 +11,7 @@ def RNNTanhCell(input, hidden, w_ih, w_hh, b_ih=None, b_hh=None):
 
 def rnn():
     print('\n-------rnn-------\n')
-    seq_len = 3
+    seq_len = 5
     batch = 4
     input_size = 3
     hidden_size = 2
@@ -46,7 +46,7 @@ def rnn():
 def test_rnn(input, wlist, h0):
     """
     多层nn.RNN, 每层两个参数矩阵(hi,hh)级联，每层之间的x输入是没有寄存器缓存的
-    所以，输入一个对象x, 是从浅层开始依次连贯计算的前馈运算。与普通前馈不同的是需要hh输入前的寄存器，
+    所以，输入一个对象x, 是从浅层开始依次连贯计算的前馈运算。与普通前馈不同的是需要输入前的寄存器，
     存下每层的输出，最后组成当前x的hn
     output: 是每个输入对象整个多层rnn的最后层的输出
     """
@@ -123,9 +123,9 @@ def test_brnn(input, wlist, h0, hn, output_L1):
     然后才能输入整个序列的完整output
 
     单层!!!brnn下
-    hn: 是最有一个时间步得到隐状态，即 
-    正向hn[0] = ouput[T-1][前一半], 
-    方向hn[1] = output[0][后一半]
+    hn: 是最后一个时间步得到隐状态，即
+    正向的　hn[0] = ouput[T-1][前一半],
+    反向的　hn[1] = output[0][后一半]
 
     RNN.weight_ih_l[k]  = (hidden_size, num_directions * hidden_size)
     """

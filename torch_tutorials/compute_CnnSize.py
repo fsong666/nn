@@ -22,6 +22,7 @@ def _ntuple(n):
         if isinstance(x, container_abcs.Iterable):
             return x
         return tuple(repeat(x, n))
+
     return parse
 
 
@@ -34,6 +35,10 @@ def cnnSize(in_size, kernel_size=1, stride=1, padding=0, dilation=1, groups=1):
     # same p=s=1 if k = 3
     # same p=2, s =1 if k = 5
     # y = n - 2, if p=1, s =1, k = 5
+
+    out = floor[(x + 2 * p - d*(k - 1) - 1) / stride + 1]
+    当k=3, stride=1: out = floor[(x + 2p - 2d - 1) + 1]
+    只要 padding==dilation 则　out = x, 输出尺寸不变
     """
     input_H, input_W = in_size
     kernel_size = _pair(kernel_size)
@@ -71,16 +76,21 @@ def deconvSize(in_size, kernel_size=1, stride=1, padding=0, dilation=1, output_p
     return H_out, W_out
 
 
-if __name__ == '__main__':
+def mal4(x):
+    return tuple([i * 4 for i in x])
 
-    # x = cnnSize(in_size=(720, 1280), kernel_size=3, stride=1, padding=1)
-    x = cnnSize(in_size=(720, 1280), kernel_size=7, stride=2, padding=3)
-    # x = maxPoolSize(x, kernel_size=2, stride=2)
+
+if __name__ == '__main__':
+    s = (255, 255)
+    print(s)
+    x = cnnSize(in_size=s, kernel_size=7, stride=2, padding=0)
+    # x = cnnSize(in_size=(720, 1280), kernel_size=7, stride=2, padding=3)
+    # # x = maxPoolSize(x, kernel_size=2, stride=2)
     x = maxPoolSize(x, kernel_size=3, stride=2, padding=1)
-    x = cnnSize(x, kernel_size=3, stride=2, padding=1)
-    x = maxPoolSize(x, kernel_size=2, stride=2)
-    x = cnnSize(in_size=x, kernel_size=3, stride=2, padding=1)
-    x = maxPoolSize(x, kernel_size=2, stride=2)
+    # x = cnnSize(x, kernel_size=3, stride=2, padding=1)
+    # x = maxPoolSize(x, kernel_size=2, stride=2)
+    # x = cnnSize(in_size=x, kernel_size=3, stride=2, padding=1)
+    # x = maxPoolSize(x, kernel_size=2, stride=2)
 
     # x = cnnSize(in_size=(720, 1280), kernel_size=3, stride=2, padding=1)
     # x = cnnSize(in_size=x, kernel_size=3, stride=2, padding=1)
@@ -104,3 +114,19 @@ if __name__ == '__main__':
     # x = deconvSize(x, kernel_size=4, stride=2, padding=1)
     # x = deconvSize(x, kernel_size=4, stride=2, padding=1)
 
+    # dilation_resnet
+    print('layer1')
+    x = cnnSize(in_size=x, kernel_size=3, stride=1, padding=1)
+    print('layer2')
+    x = cnnSize(in_size=x, kernel_size=3, stride=2, padding=0)
+    print('layer3')
+    x = cnnSize(in_size=x, kernel_size=3, stride=1, padding=1, dilation=1)
+    print('layer4')
+    x = cnnSize(in_size=x, kernel_size=3, stride=1, padding=2, dilation=2)
+    x = cnnSize(in_size=x, kernel_size=3, stride=1, padding=4, dilation=4)
+
+    print('corr')
+    x = cnnSize(in_size=x, kernel_size=15, stride=1, padding=0, dilation=1)
+
+    print('deconv down')
+    x = deconvSize(x, kernel_size=1, stride=1)

@@ -9,6 +9,7 @@
 *.pth
 *.pt
 *.html
+docu
 
 # Byte-compiled / optimized / DLL files
 **/__pycache__

@@ -6,8 +6,15 @@ __all__ = [torch.nn]
 """
 conv.weight=  torch.Size([out_channels, in_channels // groups, kernel_size[0], kernel_size[1]])
 out_channels: 决定有多少个3d卷积核
+“atrous 
+分组卷积是分的channel
 """
 
+"""
+在view之后
+tensor.shape != tensor.size()
+view之后应使用size()
+"""
 
 class CNN(nn.Module):
     def __init__(self):
@@ -97,7 +104,17 @@ def children():
         print(idx, '->', m)
 
 
+"""
+如果卷积核的尺寸等于输入图片的尺寸，此整体卷积层　＝＝　全连接层
 
+当输出通道都为１时
+一般conv输出是向量或矩阵
+全连接输出是一个标量
+所以一般整体conv层 != 全连接层
+但是输出的每个通道图片的矩阵是一个全连接层的输出，只不过权重矩阵为卷积核矩阵
+当权重矩阵转为卷积核矩阵时，一般conv输出一个单通道矩阵等效成一个全连接层的输出结果！！！　不是整体conv等效成全部连接层
+
+"""
 if __name__ == '__main__':
     groups()
 

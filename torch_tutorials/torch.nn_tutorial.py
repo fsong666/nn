@@ -37,6 +37,7 @@ if __name__ == '__main__':
     print("x=\n", x)
     print("y=\n", y)
     print("\ndiff.size= ", diff.size(), "diff=\n", diff)
+    print("\ndiff.size= ", diff.size(), "diff=\n", diff)
 
     # argmax
     x = torch.rand(3, 4, requires_grad=True)

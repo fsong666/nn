@@ -1,8 +1,11 @@
 import torch
 from torchvision import models
 import torch.nn as nn
+from torchsummary import summary
 
-resnet = models.resnet152(pretrained=False, num_classes=4)
+resnet = models.resnet152(pretrained=False, num_classes=4).to('cuda')
+summary(resnet, (3, 255, 255))
+
 modules = list(resnet.children())
 print('resnet.len:\n', len(modules))
 print('resnet:\n', modules)

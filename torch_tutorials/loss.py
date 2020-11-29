@@ -1,8 +1,9 @@
 import torch.nn as nn
 import torch
 
+torch.manual_seed(10)
 
-def loss_test():
+def cross_entropy_loss():
     input = torch.randn(3, 4)
     target = torch.tensor([0, 2, 1])
     label = [0, 2, 1]
@@ -70,5 +71,36 @@ def weight(bs=4, num_class=5):
             out, loss_fn(log_soft, target), loss_fn2(log_soft, target)))
 
 
-# loss_test()
-weight()
+def bceloss():
+    """
+    Binary Cross Entropy#
+    把每个特征图的像素值当做一个样本的输出正例概率，整个图的所有像素是当前的batch
+    一个正列概率和一个target概率就可求出该点的bceloss
+
+    input x:`x >= 0. && x <= 1.'
+
+    BCEWithLogitsLoss = BCELoss(Sigmoid(input), label)
+    """
+    print('******BCELoss*******')
+    size = (3, 4)
+    input = torch.randn(size)
+    print('------\ninput=\n', input)
+    sig = nn.Sigmoid()
+    sig_input = sig(input)
+    print('-----after sigmoid -> [0, 1]–––\ninput=\n', sig_input)
+    # target = torch.randint(0, 2, size).float()
+    target = torch.rand(size)
+    print('target=\n', target)
+    bce_loss = nn.BCELoss()
+    out = bce_loss(sig_input, target)
+    print('out=\n', out)
+
+    print('******BCEWithLogitsLoss*******')
+    wbce_loss = nn.BCEWithLogitsLoss()
+    out = wbce_loss(input, target)
+    print('out=\n', out)
+
+
+if __name__ == '__main__':
+    # weight()
+    bceloss()
